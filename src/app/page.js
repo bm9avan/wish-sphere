@@ -1,95 +1,128 @@
-import Image from 'next/image'
-import styles from './page.module.css'
+"use client";
+import React, { useState, useRef } from "react";
+import html2canvas from "html2canvas";
+import { saveAs } from "file-saver";
+import styles from "./page.module.css";
+import { WhatsappShareButton } from "react-share"; // Import WhatsAppShareButton and other necessary share components
 
-export default function Home() {
+const TextToImage = () => {
+  const [inputText, setInputText] = useState("");
+  const canvasRef = useRef(null);
+
+  const handleInputChange = (event) => {
+    setInputText(event.target.value);
+  };
+
+  const handleDownload = () => {
+    const canvas = canvasRef.current;
+
+    html2canvas(canvas).then((canvas) => {
+      canvas.toBlob((blob) => {
+        saveAs(blob, "text-to-image.png");
+      });
+    });
+  };
+
+  const handleShare1 = async () => {
+    const canvas = await html2canvas(canvasRef.current);
+
+    const canvasDataUrl = canvas.toDataURL();
+    const shareUrl = window.location.href;
+
+    try {
+      const canvasBlob = await fetch(canvasDataUrl).then((res) => res.blob());
+      const shareData = {
+        title: "Check out this image I created!",
+        text: inputText,
+        url: shareUrl,
+        files: [
+          new File([canvasBlob], "text-to-image.png", { type: "image/png" }),
+        ],
+      };
+
+      await navigator.share(shareData);
+    } catch (error) {
+      console.error("Share error:", error);
+    }
+  };
+
+  const handleShare = async () => {
+    const canvas = canvasRef.current;
+    let file;
+    html2canvas(canvas).then((canvas) => {
+      canvas.toBlob((blob) => {
+        // saveAs(blob, "text-to-image.png");
+        file = [new File([blob], "hb-img.png", { type: "image/png" })];
+      });
+    });
+
+    // const canvas = await html2canvas(canvasRef.current);
+
+    // const canvasDataUrl = canvas.toDataURL();
+    // const shareUrl = window.location.href;
+    // console.log("oin share,", shareUrl);
+
+    // // const blob = await response.blob();
+    // const file = [
+    //   new File([canvasDataUrl], "text-to-image.png", { type: "image/png" }),
+    // ];
+    // console.log(file);
+
+    // try {
+    //   await navigator.share({
+    //     title: 'Check out this image I created!',
+    //     text: inputText,
+    //     url: shareUrl,
+    //     files: [new File([canvasDataUrl], 'text-to-image.png', { type: 'image/png' })],
+    //   });
+    // } catch (error) {
+    //   console.error('Share error:', error);
+    // }
+    setTimeout(async () => {
+      if (navigator.share) {
+        await navigator
+          .share({
+            title: "title",
+            text: "your text",
+            url: "url to share",
+            files: [file],
+          })
+          .then(() => console.log("Successful share"))
+          .catch((error) => console.log("Error in sharing", error));
+      } else {
+        console.log(`system does not support sharing files.`);
+      }
+    }, 1000);
+  };
+
   return (
-    <main className={styles.main}>
-      <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>src/app/page.js</code>
-        </p>
-        <div>
-          <a
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
+    <div className={styles.main}>
+      <span className={styles.header}>
+        <h3>WishSphere:</h3>
+        <p> Exploring Joyful Wishes</p>
+      </span>
+      <div ref={canvasRef} className={styles.successCard}>
+        {inputText}
       </div>
-
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
+      <form action="get">
+        <input
+          type="text"
+          placeholder="Enter your text"
+          value={inputText}
+          onChange={handleInputChange}
         />
-      </div>
+      </form>
+      <button onClick={handleDownload}>Download Image</button>
+      <WhatsappShareButton
+        url={window.location.href}
+        title="Check out this image I created!"
+        separator=": "
+        onClick={handleShare}
+      >
+        Share on WhatsApp
+      </WhatsappShareButton>
+    </div>
+  );
+};
 
-      <div className={styles.grid}>
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p>Find in-depth information about Next.js features and API.</p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Learn <span>-&gt;</span>
-          </h2>
-          <p>Learn about Next.js in an interactive course with&nbsp;quizzes!</p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p>Explore the Next.js 13 playground.</p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
-  )
-}
+export default TextToImage;
